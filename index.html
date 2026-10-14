@@ -463,6 +463,11 @@
         let univUsed = false;
         let audienceUsed = false;
 
+        // VARIÁVEIS ADICIONADAS: CRONÔMETRO E SELEÇÃO PENDENTE
+        let timerVal = 30;
+        let timerInterval = null;
+        let pendingSelectionIndex = null;
+
         function goToUniversitarios() {
             playerName = document.getElementById('playerName').value.trim();
             if(!playerName) { alert("Por favor, digite seu nome!"); return; }
@@ -479,6 +484,7 @@
                 grid.appendChild(card);
             });
         }
+
         function toggleSelectEntity(card, index) {
             if(card.classList.contains('selected')) {
                 card.classList.remove('selected');
@@ -491,17 +497,14 @@
             document.getElementById('btnStartGame').disabled = selectedUnivs.length !== 3;
             document.getElementById('btnStartGame').textContent = selectedUnivs.length === 3 ? "Iniciar Jogo!" : `Escolha mais ${3 - selectedUnivs.length}`;
         }
+
         function startGame() {
             audienceEntities = entities.filter((_, idx) => !selectedUnivs.includes(idx));
-            
-            const faciles = shuffle([...allQuestions.filter(q => q.level === 'facil')]).slice(0, 4);       // 1k a 4k
-            const inters = shuffle([...allQuestions.filter(q => q.level === 'inter')]).slice(0, 7);       // 5k a 60k
-            const dificiles = shuffle([...allQuestions.filter(q => q.level === 'dificil')]).slice(0, 4);  // 100k a 400k
-            const milhaoPool = shuffle([...allQuestions.filter(q => q.level === 'milhao')]);
-            const p500k = milhaoPool[0];                                                                  // 500k
-            const p1M = milhaoPool[1];                                                                    // 1 Milhão
-
-            gameQuestions = [...faciles, ...inters, ...dificiles, p500k, p1M];
+            const faciles = shuffle([...allQuestions.filter(q => q.level === 'facil')]).slice(0, 4);
+            const inters = shuffle([...allQuestions.filter(q => q.level === 'inter')]).slice(0, 4);
+            const dificiles = shuffle([...allQuestions.filter(q => q.level === 'dificil')]).slice(0, 7);
+            const milhao = shuffle([...allQuestions])[0];
+            gameQuestions = [...faciles, ...inters, ...dificiles, milhao];
             currentIdx = 0;
             skipsLeft = 3;
             univUsed = false;
@@ -515,17 +518,19 @@
             document.getElementById('dispPlayer').textContent = playerName;
             loadQuestion();
         }
+
         function loadQuestion() {
             const qData = gameQuestions[currentIdx];
             document.getElementById('dispPrize').textContent = prizes[currentIdx];
             document.getElementById('questionText').textContent = `${currentIdx + 1}) ${qData.q}`;
             
+            // MISTURA AS ALTERNATIVAS DA PERGUNTA
             const originalOpts = qData.opts;
             let indexedOpts = originalOpts.map((text, idx) => ({ text, isCorrect: idx === qData.ans }));
             indexedOpts = shuffle(indexedOpts);
             currentShuffledOpts = indexedOpts.map(item => item.text);
             currentCorrectIndex = indexedOpts.findIndex(item => item.isCorrect);
-            
+
             const box = document.getElementById('optionsBox');
             box.innerHTML = '';
             const labels = ['A', 'B', 'C', 'D'];
@@ -533,14 +538,59 @@
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerHTML = `<strong>${labels[i]})</strong> ${optText}`;
-                btn.onclick = () => answer(i);
+                btn.onclick = () => selectOption(i);
                 box.appendChild(btn);
             });
+
+            resetTimer();
         }
+
+        // RECURSO ADICIONADO: REINICIA CRONÔMETRO DE 30 SEGUNDOS
+        function resetTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            timerVal = 30;
+            document.getElementById('timer').textContent = timerVal;
+
+            timerInterval = setInterval(() => {
+                timerVal--;
+                document.getElementById('timer').textContent = timerVal;
+                
+                if(timerVal <= 0) {
+                    clearInterval(timerInterval);
+                    showEndModal("⏱️ O Tempo Acabou!", `${playerName}, seu tempo de 30 segundos se esgotou!<br><br>O jogo terminou!`);
+                }
+            }, 1000);
+        }
+
+        // RECURSO ADICIONADO: SELECIONA A OPÇÃO E PEDE CONFIRMAÇÃO
+        function selectOption(selectedIdx) {
+            pendingSelectionIndex = selectedIdx;
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach((b, i) => {
+                b.classList.toggle('selected', i === selectedIdx);
+            });
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        // RECURSO ADICIONADO: CONFIRMA A RESPOSTA
+        function confirmAnswer() {
+            document.getElementById('confirmModal').style.display = 'none';
+            if(timerInterval) clearInterval(timerInterval);
+            answer(pendingSelectionIndex);
+        }
+
+        // RECURSO ADICIONADO: CANCELA A RESPOSTA
+        function cancelAnswer() {
+            document.getElementById('confirmModal').style.display = 'none';
+            pendingSelectionIndex = null;
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.classList.remove('selected'));
+        }
+
         function answer(selectedIdx) {
             if(selectedIdx === currentCorrectIndex) {
-                if(currentIdx === 16) {
-                    showEndModal("🏆 PARABÉNS! VOCÊ É UM MILIONÁRIO!", `${playerName}, você dominou os fundamentos profundos e conquistou o prêmio máximo de R$ 1.000.000 no terreiro! Axé! 🎉`);
+                if(currentIdx === 15) {
+                    showEndModal("🏆 PARABÉNS! VOCÊ É UM MILIONÁRIO!", `${playerName}, você dominou os fundamentos e conquistou o prêmio máximo de R$ 1.000.000 no terreiro! Axé! 🎉`);
                 } else {
                     currentIdx++;
                     showModal("✨ Resposta Correta!", `<p>Você passou para o próximo nível!<br>Prêmio acumulado: <strong>${prizes[currentIdx]}</strong></p>`);
@@ -551,6 +601,7 @@
                 showEndModal("❌ Que pena!", `${playerName}, você errou. A resposta certa era:<br><strong>"${correctText}"</strong>.<br><br>O jogo terminou!`);
             }
         }
+
         function useUniversitarios() {
             if(univUsed) return;
             univUsed = true;
@@ -582,6 +633,7 @@
             `;
             showModal("🎓 Ajuda dos Universitários", html);
         }
+
         function useAudience() {
             if(audienceUsed) return;
             audienceUsed = true;
@@ -608,6 +660,7 @@
             statsHtml += '</div>';
             showModal("👥 Votação da Plateia (20 Entidades)", gridHtml + statsHtml);
         }
+
         function useSkip() {
             if(skipsLeft <= 0) return;
             skipsLeft--;
@@ -617,10 +670,13 @@
             loadQuestion();
             showModal("⏭️ Pergunta Pulada", "<p>Você pulou esta pergunta com sucesso sem perder seu prêmio!</p>");
         }
+
         function stopGame() {
+            if(timerInterval) clearInterval(timerInterval);
             const currentPrize = currentIdx > 0 ? prizes[currentIdx - 1] : "R$ 0";
             showEndModal("🛑 Você Parou!", `${playerName}, você decidiu parar e levou para casa o prêmio de <strong>${currentPrize}</strong>!<br><br>Parabéns pela jogada!`);
         }
+
         function showModal(title, htmlContent) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = htmlContent;
@@ -628,7 +684,9 @@
             document.getElementById('modalCloseBtn').onclick = closeModal;
             document.getElementById('gameModal').style.display = 'flex';
         }
+
         function showEndModal(title, htmlContent) {
+            if(timerInterval) clearInterval(timerInterval);
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = htmlContent;
             document.getElementById('modalCloseBtn').textContent = "🔄 Jogar Novamente";
@@ -638,15 +696,19 @@
             };
             document.getElementById('gameModal').style.display = 'flex';
         }
+
         function closeModal() {
             document.getElementById('gameModal').style.display = 'none';
         }
+
         function resetToStart() {
+            if(timerInterval) clearInterval(timerInterval);
             document.getElementById('screen-game').classList.remove('active');
             document.getElementById('screen-start').classList.add('active');
             document.getElementById('playerName').value = '';
             selectedUnivs = [];
         }
+
         function shuffle(array) {
             return array.sort(() => Math.random() - 0.5);
         }
