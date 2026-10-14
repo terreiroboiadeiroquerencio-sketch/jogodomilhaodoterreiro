@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show do Milhão - Terreiro Boiadeiro Querêncio</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            background-color: #080d1a;
+            color: #f3f4f6;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #d4af37;
+            object-fit: cover;
+        }
+        h1 { color: #d4af37; margin: 0; font-size: 1.2rem; }
+        p.subtitle { color: #10b981; font-size: 0.85rem; margin: 2px 0 0 0; font-weight: bold; }
+        .card-panel {
+            background: #111827;
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+        /* Telas */
+        .screen { display: none; }
+        .screen.active { display: block; }
+        /* Formulario Inicial */
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d4af37;
+            background: #1f2937;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        .btn {
+            background: #d4af37;
+            color: #0b131f;
+            border: none;
+            padding: 12px 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #f59e0b; }
+        /* Escolha de Universitarios e Visualização */
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 5px;
+        }
+        .entity-card {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .entity-card img {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .entity-card span { font-size: 0.7rem; display: block; color: #d4af37; margin-top: 4px; }
+        .entity-card.selected { border-color: #10b981; background: #064e3b; }
+        /* Display dos Universitários na Ajuda */
+        .univ-help-grid {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .univ-help-card {
+            background: #1f2937;
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            flex: 1;
+        }
+        .univ-help-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #d4af37;
+        }
+        .univ-help-card .name { font-size: 0.75rem; color: #d4af37; font-weight: bold; display: block; }
+        .univ-help-card .vote { font-size: 0.9rem; color: #10b981; font-weight: bold; margin-top: 4px; }
+        /* Plateia Grid 20 Entidades */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+            max-height: 180px;
+            overflow-y: auto;
+            background: #0b131f;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .audience-card img {
+            width: 100%;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #374151;
+        }
+        /* Painel do Jogo */
+        .game-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1f2937;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #d4af37;
+        }
+        .question-box {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            background: #0b131f;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+        }
+        .options-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .option-btn {
+            background: #1f2937;
+            border: 1.5px solid #374151;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1.3;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { border-color: #d4af37; background: #374151; }
+        /* Ajudas */
+        .help-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .help-btn {
+            background: #111827;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            padding: 8px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .help-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #4b5563; color: #9ca3af; }
+        /* Modais */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: #111827;
+            border: 2px solid #d4af37;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <img src="https://i.ibb.co/60wpJ3xG/Logo-terreiro.jpg" class="header-logo" alt="Logo Terreiro">
+        <div>
+            <h1>Show do Milhão do Terreiro</h1>
+            <p class="subtitle">Boiadeiro Querêncio da Mata e Caboclo 7 Flechas</p>
+        </div>
+    </div>
+    <div class="card-panel">
+        <!-- TELA 1: NOME DO JOGADOR -->
+        <div id="screen-start" class="screen active">
+            <h2 style="color: #d4af37; margin-top: 0;">Bem-vindo ao Desafio!</h2>
+            <p>Digite seu nome ou apelido para entrar na roda do conhecimento:</p>
+            <input type="text" id="playerName" placeholder="Seu nome..." maxlength="20">
+            <button class="btn" onclick="goToUniversitarios()">Avançar</button>
+        </div>
+        <!-- TELA 2: ESCOLHER UNIVERSITÁRIOS -->
+        <div id="screen-select" class="screen">
+            <h3 style="color: #d4af37; margin-top:0;">Escolha seus 3 Universitários (Ajuda)</h3>
+            <p style="font-size: 0.85rem; color: #9ca3af;">As outras 20 entidades formarão a Plateia!</p>
+            <div class="entity-grid" id="entityGrid"></div>
+            <button class="btn" id="btnStartGame" onclick="startGame()" disabled>Iniciar Jogo (Escolha 3)</button>
+        </div>
+        <!-- TELA 3: O JOGO -->
+        <div id="screen-game" class="screen">
+            <div class="game-status">
+                <div><strong>Jogador:</strong> <span id="dispPlayer" style="color:#d4af37;"></span></div>
+                <div><strong>Prêmio:</strong> <span id="dispPrize" style="color:#10b981; font-weight:bold;">R$ 1.000</span></div>
+            </div>
+            <div class="question-box" id="questionText">Carregando pergunta...</div>
+            <div class="options-grid" id="optionsBox"></div>
+            <div class="help-panel">
+                <button class="help-btn" id="btnUniv" onclick="useUniversitarios()">🎓 Universitários</button>
+                <button class="help-btn" id="btnAudience" onclick="useAudience()">👥 Plateia (20)</button>
+                <button class="help-btn" id="btnSkip" onclick="useSkip()">⏭️ Pular (<span id="skipCount">3</span>)</button>
+            </div>
+            <button class="btn" style="margin-top:15px; background:#ef4444; color:#fff;" onclick="stopGame()">Parar e Levar Prêmio</button>
+        </div>
+    </div>
+    <!-- MODAL DE AJUDA / RESULTADO -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="color: #d4af37; margin-top: 0;"></h3>
+            <div id="modalBody"></div>
+            <button class="btn" style="margin-top: 15px;" onclick="closeModal()" id="modalCloseBtn">Continuar</button>
+        </div>
+    </div>
+    <script>
+        const entities = [
+            { name: "Boiadeira", img: "https://i.ibb.co/HfY97m1Q/boiadeira.jpg" },
+            { name: "Boiadeiro", img: "https://i.ibb.co/5gLgyczK/boiadeiro.jpg" },
+            { name: "Linha do Oriente", img: "https://i.ibb.co/FLgvpKB3/oriente.jpg" },
+            { name: "Preta Velha", img: "https://i.ibb.co/sd9BPvWv/preta-velha.jpg" },
+            { name: "Preto Velho", img: "https://i.ibb.co/k6GfJWrY/preto-velho.jpg" },
+            { name: "Linha dos Mares", img: "https://i.ibb.co/fzqdSF1G/pirata.png" },
+            { name: "Marinheiros", img: "https://i.ibb.co/Xxz6w90k/marinheiro.png" },
+            { name: "Maria Navalha", img: "https://i.ibb.co/nMd6MMHZ/malandra.jpg" },
+            { name: "Exu Mirim", img: "https://i.ibb.co/zTRw2nx4/exu-mirim.jpg" },
+            { name: "Pombo Gira", img: "https://i.ibb.co/LXzgCM58/pombo-gira.jpg" },
+            { name: "Exu", img: "https://i.ibb.co/JfqpCFL/exu.jpg" },
+            { name: "Erê Menino", img: "https://i.ibb.co/JjMSgpVS/menino.jpg" },
+            { name: "Erê Menina", img: "https://i.ibb.co/1DK8P50/menina.jpg" },
+            { name: "Cigano", img: "https://i.ibb.co/6RdGXtz2/cigano.png" },
+            { name: "Cigana", img: "https://i.ibb.co/Sw3KpbGY/cigana.jpg" },
+            { name: "Curumim", img: "https://i.ibb.co/XfLKzfQd/curumim.jpg" },
+            { name: "Cabocla", img: "https://i.ibb.co/qYtp3mh7/cabloca.jpg" },
+            { name: "Caboclo", img: "https://i.ibb.co/6RdKhHD0/caboclo.jpg" },
+            { name: "Cangaceira", img: "https://i.ibb.co/dsW4Tqq6/cangaceira.jpg" },
+            { name: "Cangaceiro", img: "https://i.ibb.co/zHPmRYV5/cangaceiro.jpg" },
+            { name: "Baianos", img: "https://i.ibb.co/FbKVVDNH/baianos.jpg" },
+            { name: "Baianas", img: "https://i.ibb.co/whgzzmyQ/baianas.jpg" },
+            { name: "Zé Pilintra", img: "https://i.ibb.co/chHZZYW1/ze-pilintra.jpg" }
+        ];
+        const prizes = [
+            "R$ 1.000", "R$ 2.000", "R$ 3.000", "R$ 4.000",
+            "R$ 5.000", "R$ 10.000", "R$ 20.000", "R$ 30.000",
+            "R$ 40.000", "R$ 50.000", "R$ 60.000", "R$ 100.000",
+            "R$ 200.000", "R$ 300.000", "R$ 400.000", "R$ 500.000", "R$ 1.000.000"
+        ];
+        
+        // BANCO DE PERGUNTAS DIVIDIDO POR NÍVEIS
+        const allQuestions = [
+            // FÁCEIS (Até R$ 20 mil)
+            { q: "Em 2026, o Terreiro Boiadeiro Querêncio fez quantos anos:", opts: ["12", "13", "10", "09"], ans: 2, level: "facil" },
+            { q: "Quantas linhas de entidades são incorporadas no terreiro:", opts: ["09", "10", "12", "11"], ans: 1, level: "facil" },
+            { q: "Quantas linhas de encantados de Orixás são incorporadas no terreiro:", opts: ["08", "10", "09", "11"], ans: 0, level: "facil" },
+            { q: "Por que é importante identificar corretamente uma erva antes de utilizá-la em um preparo ritual:", opts: ["Porque todas as ervas de aparência semelhante possuem as mesmas propriedades.", "Porque algumas plantas podem ser tóxicas ou causar irritações, além de apresentarem características e usos diferentes.", "Porque somente ervas cultivadas em ambientes fechados podem ser utilizadas em rituais.", "Porque as ervas perdem todas as suas propriedades quando são colhidas na natureza"], ans: 1, level: "facil" },
+            { q: "O que é uma quartinha nos contextos religiosos afro-brasileiros:", opts: ["Um instrumento musical utilizado para acompanhar os pontos cantados.", "Um recipiente, geralmente de barro ou louça, utilizado em práticas rituais, podendo conter água.", "Um tipo de erva utilizada exclusivamente em banhos de descarrego.", "Um objeto utilizado apenas para armazenar bebidas durante as festas do terreiro."], ans: 1, level: "facil" },
+            { q: "No contexto das religiões de matriz africana, o que significa o termo imolação:", opts: ["A preparação de ervas para banhos e defumações rituais.", "O sacrifício ritual de um animal ou, em determinados contextos históricos, de uma vítima, como parte de uma prática religiosa.", "A consagração de objetos utilizados nos assentamentos religiosos.", "A oferta exclusiva de alimentos vegetais às divindades."], ans: 1, level: "facil" },
+            { q: "Qual é a finalidade dos banhos de ervas em diferentes tradições religiosas afro-brasileiras:", opts: ["Substituir todas as demais obrigações e práticas religiosas.", "Promover exclusivamente a higiene física, sem significado ritual.", "Cumprir finalidades rituais específicas, conforme as ervas utilizadas e os fundamentos da tradição.", "Produzir obrigatoriamente os mesmos efeitos em todas as pessoas."], ans: 2, level: "facil" },
+            { q: "Qual alternativa descreve adequadamente Exu nas tradições de Umbanda que trabalham com essa entidade:", opts: ["Exu é necessariamente uma representação do diabo cristão.", "Exu é uma entidade associada, em differentes vertentes, à guarda, à comunicação, à abertura de caminhos e à atuação em zonas de passagem.", "Exu é sempre considerado um espírito de uma pessoa que morreu violentamente.", "Exu e Orixá são termos que designam exatamente a mesma categoria em todas as tradições afro-brasileiras."], ans: 1, level: "facil" },
+            { q: "Qual é o papel das entidades nos trabalhos de Umbanda?", opts: ["Substituir os Orixás em todas as tradições afro-brasileiras.", "Atuar nos trabalhos espirituais conforme os fundamentos da casa.", "Exercer a mesma função, independentemente da linha de trabalho.", "Atuar exclusivamente durante as festas religiosas."], ans: 1, level: "facil" },
+            { q: "O que significa a expressão “Laroyê”:", opts: ["Que a paz esteja presente em todos os caminhos.", "Uma saudação associada a Exu, cujo sentido é relacionado à tradição e ao contexto ritual.", "Uma expressão que significa exclusivamente “proteção dos ancestrais”.", "Uma saudação exclusiva aos Caboclos."], ans: 1, level: "facil" },
+            { q: "Qual característica é tradicionalmente associada a linha de Pretos Velhos:", opts: ["Ancestralidade e aconselhamento.", "Caça e guerra.", "Comércio e prosperidade.", "Infância e brincadeiras."], ans: 0, level: "facil" },
+            { q: "Qual característica é frequentemente associada a linha dos Baianos:", opts: ["Recolhimento e silêncio absoluto.", "Descontração, firmeza e determinação.", "Exclusivamente trabalhos com ervas.", "Representação de divindades infantis."], ans: 1, level: "facil" },
+            { q: "Qual elemento está simbolicamente associado a linha de Boiadeiros:", opts: ["Coroas e cetros.", "Brinquedos e doces.", "Laços, laçadas e condução do gado.", "Livros e pergaminhos."], ans: 2, level: "facil" },
+            { q: "Qual característica é frequentemente associada a linha de Caboclos:", opts: ["Infância e ingenuidade.", "Trabalho exclusivamente com moedas.", "Representação de antigos comerciantes.", "Relação simbólica com a mata e a força da natureza."], ans: 3, level: "facil" },
+            { q: "Qual característica é tradicionalmente associada a linha de Erês:", opts: ["Representação exclusiva de ancestrais idosos.", "Manifestação de características infantis, como espontaneidade e brincadeira.", "Trabalho exclusivo com condução de gado.", "Atuação restrita à abertura de caminhos comerciais."], ans: 1, level: "facil" },
+            { q: "Como deve ser o preparo do alguidar para uma oferenda:", opts: ["Lavar com água corrente", "Lavar com sabão da costa", "Lavar com dendê", "Lavar com marafo"], ans: 3, level: "facil" },
+            { q: "O que é o guia-chefe de um médium na Umbanda:", opts: ["A entidade mais antiga de todo o terreiro, independentemente do médium", "A entidade que necessariamente possui maior poder hierárquico entre todas as linhas", "A entidade reconhecida como principal referência espiritual no trabalho daquele médium", "A primeira entidade que se manifesta durante uma gira"], ans: 2, level: "facil" },
+            { q: "O que é uma Oferenda:", opts: ["Um presente simbólico sem qualquer função religiosa ou ritual", "Uma obrigação exclusivamente financeira destinada à manutenção do terreiro", "Uma prática ritual que envolve elementos materiais oferecidos a divindades ou entidades.", "Um ritual obrigatório, realizado da mesma maneira em todos os terreiros"], ans: 2, level: "facil" },
+            { q: "O que significa “demanda” no contexto da Umbanda?", opts: ["Uma obrigação ritual que todo médium deve cumprir anualmente", "Uma ação de caráter espiritual, que interfere de maneira negativa na vida da pessoa", "Uma oferenda realizada exclusivamente para os Orixás", "Uma disputa hierárquica entre médiuns do mesmo terreiro"], ans: 1, level: "facil" },
+            { q: "Qual pode ser a função do brado emitido por algumas entidades durante os trabalhos:", opts: ["Comprovar obrigatoriamente a incorporação.", "Expressar características simbólicas e ritualísticas da entidade, conforme sua linha de trabalho e os fundamentos da casa.", "Substituir os pontos cantados durante toda a gira.", "Indicar necessariamente uma situação de conflito espiritual."], ans: 1, level: "facil" },
+            { q: "Qual é a importância dos pontos cantados nos trabalhos de Umbanda:", opts: ["Servir exclusivamente como acompanhamento musical.", "Substituir todas as demais práticas rituais.", "Determinar uma sequência idêntica de trabalho em todos os terreiros.", "Exercer funções rituais, como saudar entidades, marcar momentos do trabalho e participar da dinâmica espiritual da gira."], ans: 3, level: "facil" },
+            { q: "Qual é a importância das palmas nos rituais de Umbanda:", opts: ["Servir exclusivamente para acompanhar o ritmo das músicas", "Substituir os instrumentos musicais e os pontos cantados", "Contribuir para a sustentação rítmica dos pontos cantados e para a participação coletiva na dinâmica ritual", "Determinar obrigatoriamente o momento da incorporação das entidades"], ans: 2, level: "facil" },
+            { q: "Qual é o papel do cambone nos trabalhos de Umbanda:", opts: ["Determinar quais entidades podem se manifestar durante a gira.", "Sustentar a gira com sua energia, auxiliando entidades e médiuns", "Substituir o dirigente religioso na condução de todos os rituais.", "Atuar exclusivamente na organização e limpeza do terreiro"], ans: 1, level: "facil" },
+            { q: "Qual é a função ritual da defumação antes de iniciar a gira?", opts: ["Apenas perfumar o ambiente para os visitantes.", "Purificar o espaço, limpar as energias densas e preparar o campo espiritual.", "Substituir a limpeza física do terreiro.", "Indicar que a gira já terminou."], ans: 1, level: "facil" },
+            { q: "Para que serve a pemba:", opts: ["Giz mineral sagrado utilizado para riscar pontos, firmar energias e consagrar espaços.", "Adereço decorativo usado exclusivamente pelos médiuns mais antigos.", "Pedra preciosa oferecida apenas aos Orixás.", "Instrumento musical de percussão."], ans: 0, level: "facil" },
+            { q: "Qual é o papel dos pontos de subida na gira?", opts: ["Avisar o público que o terreiro vai fechar as portas.", "Marcar o encerramento do trabalho da entidade e auxiliar na desincorporação.", "Convocar novas entidades para iniciarem o atendimento.", "Pedir silêncio aos frequentadores."], ans: 1, level: "facil" },
+            { q: "Qual o significado simbólico do fogo:", opts: ["Representa exclusivamente a destruição e o fim dos trabalhos.", "É um elemento de transmutação, purificação e expansão da energia espiritual.", "Serve apenas para iluminação do espaço ritual.", "É um símbolo utilizado apenas em festas."], ans: 1, level: "facil" },
+            { q: "Qual é a função dos atabaques:", opts: ["Produzir vibrações sonoras e rítmicas que auxiliam na sustentação da", "Servir exclusivamente como acompanhamento para o coral do terreiro.", "Indicar a hora exata em que as oferendas devem ser entregues.", "Substituir a orientação do Dirigente Espiritual."], ans: 0, level: "facil" },
+
+            // INTERMEDIÁRIAS (R$ 30 mil a R$ 60 mil)
+            { q: "O que é a Jurema:", opts: ["Um lugar encantado, uma canção e uma árvore", "Uma linha de trabalho", "Um ponto", "Um lugar encantado, uma árvore, uma entidade"], ans: 3, level: "inter" },
+            { q: "Sobre a formação histórica da Umbanda no Brasil, qual afirmação é correta:", opts: ["A Umbanda surgiu exclusivamente de tradições africanas, sem influência de outras matrizes religiosas.", "A Umbanda possui uma doutrina única, seguida obrigatoriamente por todos os terreiros.", "A Umbanda se constituiu historicamente por meio de diferentes influências culturais e religiosas, apresentando diversidade entre suas vertentes.", "A Umbanda foi criada durante o período colonial exclusivamente por missionários"], ans: 2, level: "inter" },
+            { q: "Nas tradições religiosas afro-brasileiras, qual alternativa apresenta uma distinção conceitual adequada entre ancestral e encantado:", opts: ["Ancestrais e encantados são necessariamente espíritos de pessoas falecidas.", "A ancestralidade se relaciona aos antepassados e aos vínculos com eles, enquanto os encantados podem pertencer a categorias de seres cuja condição não corresponde necessariamente à de mortos humanos.", "Encantados são exclusivamente divindades africanas cultuadas no Candomblé.", "Ancestrais são exclusivamente indígenas, enquanto encantados são exclusivamente africanos"], ans: 1, level: "inter" },
+            { q: "Qual é uma das funções dos pontos cantados nos rituais de Umbanda:", opts: ["Substituir todas as demais práticas e obrigações rituais.", "Servir exclusivamente como entretenimento musical.", "Determinar uma sequência ritual idêntica em todas as casas de Umbanda.", "Marcar momentos rituais, saudar entidades e expressar elementos dos fundamentos religiosos da tradição."], ans: 3, level: "inter" },
+            { q: "Qual é a principal finalidade do banho de ervas nas tradições de Umbanda:", opts: ["Substituir todas as demais obrigações e práticas rituais.", "Promover exclusivamente a higiene física do praticante.", "Atuar ritualisticamente conforme as propriedades atribuídas às ervas e os fundamentos da tradição religiosa.", "Produzir os mesmos efeitos espirituais, independentemente das ervas utilizadas."], ans: 2, level: "inter" },
+            { q: "Sobre a utilização ritual da quartinha, qual alternativa é a mais adequada:", opts: ["Todas as quartinhas possuem obrigatoriamente a mesma função e devem ser preparadas da mesma maneira em todos os terreiros.", "A quartinha é utilizada exclusivamente como objeto decorativo, sem função religiosa.", "A função ritual da quartinha, seu conteúdo e os cuidados com ela podem variar conforme a entidade, a finalidade e os fundamentos específicos de cada tradição ou casa.", "A quartinha deve permanecer sempre vazia, independentemente dos fundamentos religiosos"], ans: 2, level: "inter" },
+            { q: "Por que algumas tradições religiosas diferenciam banhos de descarrego, harmonização e fortalecimento:", opts: ["Porque cada categoria pode corresponder a objetivos rituais distintos, definidos conforme os fundamentos da casa.", "Porque todos os banhos de descarrego devem conter sal grosso, independentemente das ervas utilizadas.", "Porque os banhos de harmonização são exclusivamente feitos com flores, enquanto os demais utilizam apenas raízes.", "Porque essas classificações são universais e possuem exatamente o mesmo significado em todas as religiões afro-brasileiras."], ans: 0, level: "inter" },
+            { q: "Sobre Pombagira nas tradições de Umbanda, qual afirmação é mais adequada:", opts: ["Pombagira é sempre considerada uma mulher falecida que teve a mesma trajetória de vida.", "Pombagira é uma divindade africana cultuada da mesma maneira em todas as nações de Candomblé.", "Pombagira é uma entidade cuja atuação está necessariamente limitada a relacionamentos amorosos.", "Pombagira integra determinadas linhas de trabalho espiritual, com atribuições e características que variam conforme a entidade e os fundamentos de cada terreiro."], ans: 3, level: "inter" },
+            { q: "Por que a esteira pode ser utilizada em determinados trabalhos rituais?", opts: ["Para substituir qualquer outro elemento ritual.", "Exclusivamente para decorar o espaço religioso.", "Para cumprir uma função específica conforme os fundamentos do terreiro.", "Obrigatoriamente em todas as giras."], ans: 2, level: "inter" },
+            { q: "O que caracteriza uma obrigação religiosa em um terreiro:", opts: ["Uma prática ritual realizada conforme os fundamentos e as determinações da tradição da casa.", "Uma atividade facultativa, sem relação com os fundamentos religiosos.", "Uma cerimônia que possui o mesmo procedimento em todas as vertentes da Umbanda.", "Uma prática destinada exclusivamente aos visitantes."], ans: 0, level: "inter" },
+            { q: "O que significa a expressão “pagar o chão”:", opts: ["Fazer um pix para o Exu", "Fazer a limpeza física do chão antes da gira", "Cumprir um procedimento de ritual de firmeza e troca", "Contribuição financeira obrigatória para manutenção do espaço religioso"], ans: 2, level: "inter" },
+            { q: "Por que em nosso terreiro as pessoas entram descalças:", opts: ["Porque é uma regra obrigatória em todas as vertentes da Umbanda.", "É um fundamento relacionado à prática ritual, troca de axé e ao respeito ao espaço sagrado", "Porque os calçados impedem obrigatoriamente a incorporação", "Porque é uma exigência das entidades para a incorporação"], ans: 1, level: "inter" },
+            { q: "Qual pode ser a função do uso da saia por determinadas entidades femininas na Umbanda:", opts: ["Comprovar obrigatoriamente a incorporação.", "Representar exclusivamente o gênero da entidade.", "A saia guarda o segredo, o feitiço e o axé da entidade.", "Expressar elementos simbólicos e características da entidade, conforme os fundamentos da casa."], ans: 2, level: "inter" },
+            { q: "Qual pode ser o significado ritual da capa utilizada por alguns Exus:", opts: ["Nível de hierarquia maior que as demais", "Representa o segredo, feitiço e o tipo de trabalho da entidade", "Indicar obrigatoriamente que a entidade trabalha com magia", "Representar elementos simbólicos e características da entidade, conforme os fundamentos da casa"], ans: 1, level: "inter" },
+            { q: "Qual é o significado simbólico das cores preta e vermelha associadas a Exus e Pombagiras:", opts: ["O vermelho representa o sangue e o preto representa a escuridão", "O vermelho simboliza a vida, o preto representa a morte compreendida como rito de passagem", "O vermelho representa exclusivamente a paixão, e o preto simboliza a ausência de energia espiritual.", "As duas cores representam exclusivamente a proteção contra energias negativas."], ans: 1, level: "inter" },
+            { q: "Quem são os Encantados nas tradições religiosas afro-brasileiras:", opts: ["Espíritos de pessoas falecidas que necessariamente passaram pelo processo de morte humana.", "Divindades africanas cultuadas exclusivamente no Candomblé Ketu.", "Seres espirituais cuja condição não se limita necessariamente à de espíritos de mortos", "Entidades que representam exclusivamente indígenas que viveram no período colonial."], ans: 2, level: "inter" },
+            { q: "O que se entende por \"Tronqueira\" no contexto do terreiro:", opts: ["Servir exclusivamente como depósito de materiais utilizados nas giras.", "Funcionar como altar destinado exclusivamente aos Caboclos.", "Constituir um espaço ritual associado à firmeza, à guarda e ao trabalho de Exu, conforme os fundamentos da casa.", "Substituir os assentamentos e demais elementos rituais do terreiro."], ans: 2, level: "inter" },
+
+            // DIFÍCEIS (R$ 70 mil a R$ 400 mil)
+            { q: "Na cosmologia bakongo, o que representa o cosmograma conhecido como Dikenga:", opts: ["Um sistema de classificação dos orixás conforme os quatro elementos naturais.", "Um calendário de festas religiosas criado durante a colonização portuguesa.", "Uma representação simbólica relacionada aos ciclos da existência e às relações entre os vivos, os mortos e a ordem do mundo.", "Um símbolo destinado exclusivamente à proteção física dos espaços sagrados."], ans: 2, level: "dificil" },
+            { q: "Qual foi uma consequência histórica da repressão às práticas religiosas de origem africana no Brasil:", opts: ["A extinção completa das tradições religiosas africanas em território brasileiro.", "A perseguição e a criminalização de práticas religiosas, acompanhadas por estratégias de resistência, reorganização e transmissão de conhecimentos.", "A proibição exclusiva das práticas islâmicas, sem repressão a outras tradições africanas.", "A preservação integral e inalterada das instituições religiosas africanas no Brasil."], ans: 1, level: "dificil" },
+            { q: "Qual alternativa diferencia adequadamente sincretismo e continuidade cultural nas religiões afro-brasileiras:", opts: ["Sincretismo significa necessariamente o abandono das tradições africanas.", "Continuidade cultural significa conservar uma tradição sem nenhuma transformação histórica.", "Sincretismo e continuidade cultural são fenômenos incompatíveis.", "Sincretismo envolve articulações entre elementos de diferentes tradições, enquanto a continuidade cultural envolve a transmissão e a transformação de práticas, conhecimentos e valores ao longo do tempo."], ans: 3, level: "dificil" },
+            { q: "Na preparação ritual de ervas, por que determinadas tradições diferenciam folhas que podem ser maceradas a frio daquelas que exigem outros métodos de preparo:", opts: ["Porque todas as folhas precisam obrigatoriamente ser fervidas por vários minutos.", "Porque o método de preparo é escolhido exclusivamente pela cor das folhas.", "Porque o tempo de preparo não interfere na extração dos componentes das plantas.", "Porque as características da planta, os componentes que se pretende extrair e os fundamentos da tradição podem determinar métodos diferentes de preparo."], ans: 3, level: "dificil" },
+            { q: "Sobre a imolação de animais em tradições religiosas afro-brasileiras, qual alternativa apresenta uma afirmação historicamente adequada:", opts: ["A imolação possui exatamente o mesmo significado, procedimento e finalidade em todas as religiões afro-brasileiras.", "A imolação é uma prática exclusiva da Umbanda e não possui relação com tradições religiosas africanas.", "A imolação pode integrar determinados sistemas de oferenda e obrigações religiosas, assumindo significados específicos conforme a tradição, a divindade ou entidade e os fundamentos da comunidade.", "A imolação tem finalidade exclusivamente alimentar, sem dimensão ritual ou religiosa."], ans: 2, level: "dificil" },
+            { q: "Na preparação ritual de banhos de ervas, qual alternativa considera adequadamente tanto os fundamentos religiosos quanto os conhecimentos botânicos:", opts: ["Ferver todas as ervas por vários minutos é o procedimento mais adequado, independentemente da espécie.", "A combinação de ervas é determinada exclusivamente pelo aroma, pois a identificação botânica não interfere na segurança.", "A utilização ritual torna qualquer planta segura para aplicação sobre a pele.", "A escolha das ervas e do método de preparo deve considerar os fundamentos da tradição, a identificação correta das espécies e os riscos de toxicidade ou irritação."], ans: 3, level: "dificil" },
+            { q: "Considerando a diversidade de interpretações sobre Exu Mirim na Umbanda, qual alternativa é a mais adequada?", opts: ["Exu Mirim é necessariamente o espírito de uma criança falecida e possui a mesma origem em todos os terreiros.", "A palavra mirim, de origem tupi, significa exclusivamente “espírito infantil” e determina a natureza dessa entidade.", "Exu Mirim é uma categoria de entidade que pode ser um encantado que nunca teve vida terrena, uma pessoa que encantou ou alguém que, em vida, cometeu atrocidades, e agora se mostra como uma figura infantilizada", "Exu Mirim é universalmente identificado como filho de Exu e Pombagira em todas as tradições afro-brasileiras."], ans: 2, level: "dificil" },
+            { q: "Por que, em determinadas vertentes da Umbanda, não se realiza o culto direto aos Orixás da mesma maneira que no Candomblé:", opts: ["Porque a Umbanda considera os Orixás divindades inexistentes e não reconhece sua importância religiosa.", "Porque a Umbanda substituiu definitivamente os Orixás pelas entidades espirituais, abandonando todas as referências às tradições africanas.", "Porque determinadas vertentes da Umbanda organizam sua prática religiosa em torno do trabalho com entidades espirituais, compreendendo os Orixás de acordo com seus próprios fundamentos, sem necessariamente realizar o mesmo sistema de culto, iniciação e obrigações encontrado no Candomblé.", "Porque o culto aos Orixás é proibido em todas as vertentes da Umbanda por determinação histórica."], ans: 2, level: "dificil" },
+            { q: "Por que algumas entidades femininas colocam as mãos na cintura durante a incorporação:", opts: ["É um gesto obrigatório que comprova a incorporação.", "Representa exclusivamente vaidade e sensualidade.", "indica uma posição de firmeza e poder ancestral feminino.", "Pode expressar postura, gestualidade e características simbólicas da entidade, conforme sua linha de trabalho e os fundamentos da casa"], ans: 2, level: "dificil" },
+            { q: "Qual é a função ritual da fumaça produzida por charutos, cachimbos e cigarros em determinados trabalhos:", opts: ["Servir exclusivamente como elemento cenográfico", "Substituir todas as demais práticas de limpeza ritual", "Comprovar a presença de uma entidade durante a incorporação", "Integrar práticas de defumação e manipulação ritual da fumaça, conforme os fundamentos e a finalidade do trabalho."], ans: 3, level: "dificil" },
+            { q: "Por que entidades tanto da direita quanto da esquerda podem utilizar chapéus durante os trabalhos:", opts: ["Porque o chapéu determines se a entidade é de direita ou de esquerda", "Porque as entidades utilizam o chapéu para comprovar sua incorporação", "Porque o chapéu pode expressar características simbólicas, identitárias e funcionais da entidade", "Porque o uso do chapéu é obrigatório para entidades que trabalham com proteção espiritual"], ans: 2, level: "dificil" },
+            { q: "O que é o Dikenga na cosmologia bakongo?", opts: ["Um ritual de iniciação utilizado exclusivamente para consagrar sacerdotes.", "Um cosmograma que representa ciclos da existência e as relações entre o mundo dos vivos e o dos mortos.", "Um sistema de classificação das entidades espirituais da Umbanda.", "Um símbolo de origem europeia incorporado às religiões africanas durante a colonização."], ans: 1, level: "dificil" },
+            { q: "O que caracteriza o 'Ponto Riscado' na Umbanda?", opts: ["Uma assinatura artística aleatória criada pelo médium.", "Uma grafia sagrada e geométrica que firma a presença e ordenança da entidade.", "Uma marcação para delimitar onde o médium deve pisar.", "Um elemento que substitui os pontos cantados."], ans: 1, level: "dificil" },
+            { q: "O que representa o Congá:", opts: ["O altar sagrado da casa, ponto focal de atração de energias e firmeza", "O local exclusivo para a apresentação do grupo de pontos cantados.", "A sala de recepção onde as pessoas aguardam a senha.", "O espaço reservado apenas para reuniões."], ans: 0, level: "dificil" },
+
+            // PERGUNTAS MESTRE DA ESPOSA (Exclusivas para R$ 500 Mil e R$ 1 Milhão)
+            { 
+                q: "Considerando os fundamentos rituais do padê, qual afirmação distingue melhor sua função da de uma oferenda comum?", 
+                opts: [
+                    "O padê se distingue por ser realizado antes de toda cerimônia, enquanto as demais oferendas são destinadas exclusivamente ao encerramento.",
+                    "O padê se caracteriza pela entrega de alimentos específicos a Exu, sendo sua função determinada pelos ingredientes.",
+                    "O padê possui uma função ritual própria de saudação, comunicação e encaminhamento, conforme os fundamentos da casa.", 
+                    "O padê se distingue por estabelecer uma obrigação permanente entre o sacerdote e Exu."
+                ], 
+                ans: 2, 
+                level: "milhao" 
+            },
+            { 
+                q: "Nos fundamentos rituais da Umbanda, qual interpretação melhor explica o uso do charuto e da fumaça?", 
+                opts: [
+                    "A fumaça atua exclusivamente na limpeza energética, e o charuto identifica hierarquicamente a entidade.",
+                    "A fumaça é veículo ritual associado à defumação, limpeza e movimentação de forças; o charuto é um dos instrumentos empregados.", 
+                    "A fumaça atua na consagração de objetos, e o charuto liga a entidade ao orixá regente.",
+                    "A fumaça afasta espíritos inferiores e o charuto confirma a autenticidade da incorporação."
+                ], 
+                ans: 1, 
+                level: "milhao" 
+            },
+            { 
+                q: "Considerando os fundamentos do marafo nos rituais de Umbanda, assinale a alternativa mais adequada.", 
+                opts: [
+                    "O marafo é empregado essencialmente como oferenda alimentar, independentemente da linha.",
+                    "O marafo constitui um elemento cuja função principal é induzir o estado de transe e manifestação mediúnica.",
+                    "O marafo pode assumir funções rituais distintas conforme a entidade, a linha e os fundamentos da casa, sem significado único.", 
+                    "O marafo é utilizado prioritariamente para neutralizar energias negativas devido à sua natureza alcoólica."
+                ], 
+                ans: 2, 
+                level: "milhao" 
+            },
+            { 
+                q: "Sobre a relação entre charuto, fumaça e marafo na prática ritual, qual alternativa apresenta a compreensão mais consistente?", 
+                opts: [
+                    "Os três elementos exercem a mesma função de descarrego, diferenciando-se pelo modo de aplicação.",
+                    "Charuto e marafo sustentam a incorporação, enquanto a fumaça é subproduto sem função ritual.",
+                    "Fumaça e marafo possuem funções opostas: elevação espiritual versus fixação na materialidade.",
+                    "Os três integram operações distintas e complementares cujos significados dependem da tradição, finalidade e entidade."
+                ], 
+                ans: 3, 
+                level: "milhao" 
+            },
+            { 
+                q: "Qual das seguintes ervas é classificada doutrinariamente como 'Quente/Agressiva' para descarrego pesado, e NÃO deve ser usada em banhos de cabeça (Maci)?", 
+                opts: ["Manjericão", "Guiné", "Tapete de Oxalá (Boldo)", "Camomila"], 
+                ans: 1, 
+                level: "milhao" 
+            },
+            { 
+                q: "Sobre a atribuição da fundação da Umbanda a Zélio Fernandino de Moraes, em 1908, assinale a alternativa historicamente mais consistente.", 
+                opts: [
+                    "Porque a Umbanda já possuía uma estrutura institucional unificada e doutrina escrita antes de 1908.",
+                    "Corresponde a uma tradição fundadora importante, mas não anula a formação histórica prévia nem a pluralidade da religião.", 
+                    "Porque a Umbanda surgiu exclusivamente das tradições africanas no período colonial sem a participação de Zélio.",
+                    "Porque Zélio sistematizou uma religião plenamente constituída no século XIX com organização idêntica à atual."
+                ], 
+                ans: 1, 
+                level: "milhao" 
+            }
+        ];
+
+        let playerName = "";
+        let selectedUnivs = [];
+        let audienceEntities = [];
+        let gameQuestions = [];
+        let currentIdx = 0;
+        let currentShuffledOpts = [];
+        let currentCorrectIndex = 0;
+        let skipsLeft = 3;
+        let univUsed = false;
+        let audienceUsed = false;
+
+        function goToUniversitarios() {
+            playerName = document.getElementById('playerName').value.trim();
+            if(!playerName) { alert("Por favor, digite seu nome!"); return; }
+            
+            document.getElementById('screen-start').classList.remove('active');
+            document.getElementById('screen-select').classList.add('active');
+            const grid = document.getElementById('entityGrid');
+            grid.innerHTML = '';
+            entities.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'entity-card';
+                card.onclick = () => toggleSelectEntity(card, index);
+                card.innerHTML = `<img src="${item.img}"><span>${item.name}</span>`;
+                grid.appendChild(card);
+            });
+        }
+        function toggleSelectEntity(card, index) {
+            if(card.classList.contains('selected')) {
+                card.classList.remove('selected');
+                selectedUnivs = selectedUnivs.filter(i => i !== index);
+            } else {
+                if(selectedUnivs.length >= 3) { alert("Você já escolheu 3 universitários!"); return; }
+                card.classList.add('selected');
+                selectedUnivs.push(index);
+            }
+            document.getElementById('btnStartGame').disabled = selectedUnivs.length !== 3;
+            document.getElementById('btnStartGame').textContent = selectedUnivs.length === 3 ? "Iniciar Jogo!" : `Escolha mais ${3 - selectedUnivs.length}`;
+        }
+        function startGame() {
+            audienceEntities = entities.filter((_, idx) => !selectedUnivs.includes(idx));
+            
+            // SELEÇÃO DISTRIBUÍDA POR NÍVEIS DE PRÊMIO
+            const faciles = shuffle([...allQuestions.filter(q => q.level === 'facil')]).slice(0, 4);       // 1k a 4k
+            const inters = shuffle([...allQuestions.filter(q => q.level === 'inter')]).slice(0, 7);       // 5k a 60k
+            const dificiles = shuffle([...allQuestions.filter(q => q.level === 'dificil')]).slice(0, 4);  // 100k a 400k
+            const milhaoPool = shuffle([...allQuestions.filter(q => q.level === 'milhao')]);
+            const p500k = milhaoPool[0];                                                                  // 500k
+            const p1M = milhaoPool[1];                                                                    // 1 Milhão
+
+            gameQuestions = [...faciles, ...inters, ...dificiles, p500k, p1M];
+            currentIdx = 0;
+            skipsLeft = 3;
+            univUsed = false;
+            audienceUsed = false;
+            document.getElementById('btnUniv').disabled = false;
+            document.getElementById('btnAudience').disabled = false;
+            document.getElementById('btnSkip').disabled = false;
+            document.getElementById('skipCount').textContent = "3";
+            document.getElementById('screen-select').classList.remove('active');
+            document.getElementById('screen-game').classList.add('active');
+            document.getElementById('dispPlayer').textContent = playerName;
+            loadQuestion();
+        }
+        function loadQuestion() {
+            const qData = gameQuestions[currentIdx];
+            document.getElementById('dispPrize').textContent = prizes[currentIdx];
+            document.getElementById('questionText').textContent = `${currentIdx + 1}) ${qData.q}`;
+            
+            const originalOpts = qData.opts;
+            let indexedOpts = originalOpts.map((text, idx) => ({ text, isCorrect: idx === qData.ans }));
+            indexedOpts = shuffle(indexedOpts);
+            currentShuffledOpts = indexedOpts.map(item => item.text);
+            currentCorrectIndex = indexedOpts.findIndex(item => item.isCorrect);
+            
+            const box = document.getElementById('optionsBox');
+            box.innerHTML = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            currentShuffledOpts.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<strong>${labels[i]})</strong> ${optText}`;
+                btn.onclick = () => answer(i);
+                box.appendChild(btn);
+            });
+        }
+        function answer(selectedIdx) {
+            if(selectedIdx === currentCorrectIndex) {
+                if(currentIdx === 16) {
+                    showEndModal("🏆 PARABÉNS! VOCÊ É UM MILIONÁRIO!", `${playerName}, você dominou os fundamentos profundos e conquistou o prêmio máximo de R$ 1.000.000 no terreiro! Axé! 🎉`);
+                } else {
+                    currentIdx++;
+                    showModal("✨ Resposta Correta!", `<p>Você passou para o próximo nível!<br>Prêmio acumulado: <strong>${prizes[currentIdx]}</strong></p>`);
+                    loadQuestion();
+                }
+            } else {
+                const correctText = currentShuffledOpts[currentCorrectIndex];
+                showEndModal("❌ Que pena!", `${playerName}, você errou. A resposta certa era:<br><strong>"${correctText}"</strong>.<br><br>O jogo terminou!`);
+            }
+        }
+        function useUniversitarios() {
+            if(univUsed) return;
+            univUsed = true;
+            document.getElementById('btnUniv').disabled = true;
+            const correctOptLetter = ['A', 'B', 'C', 'D'][currentCorrectIndex];
+            const u1 = entities[selectedUnivs[0]];
+            const u2 = entities[selectedUnivs[1]];
+            const u3 = entities[selectedUnivs[2]];
+            let html = `
+                <p style="margin-top:0;">Seus 3 Universitários opinaram sobre a pergunta:</p>
+                <div class="univ-help-grid">
+                    <div class="univ-help-card">
+                        <img src="${u1.img}">
+                        <span class="name">${u1.name}</span>
+                        <div class="vote">Aposta: ${correctOptLetter}</div>
+                    </div>
+                    <div class="univ-help-card">
+                        <img src="${u2.img}">
+                        <span class="name">${u2.name}</span>
+                        <div class="vote">Aposta: ${correctOptLetter}</div>
+                    </div>
+                    <div class="univ-help-card">
+                        <img src="${u3.img}">
+                        <span class="name">${u3.name}</span>
+                        <div class="vote">Aposta: ${correctOptLetter}</div>
+                    </div>
+                </div>
+                <p style="font-size:0.85rem; color:#10b981; font-weight:bold;">Recomendação Unânime: Alternativa ${correctOptLetter}</p>
+            `;
+            showModal("🎓 Ajuda dos Universitários", html);
+        }
+        function useAudience() {
+            if(audienceUsed) return;
+            audienceUsed = true;
+            document.getElementById('btnAudience').disabled = true;
+            const labels = ['A', 'B', 'C', 'D'];
+            let percents = [10, 10, 10, 10];
+            percents[currentCorrectIndex] = 70;
+            let gridHtml = '<div class="audience-grid">';
+            audienceEntities.forEach(ent => {
+                gridHtml += `<div class="audience-card" title="${ent.name}"><img src="${ent.img}"></div>`;
+            });
+            gridHtml += '</div>';
+            let statsHtml = '<div style="text-align:left; background:#1f2937; padding:10px; border-radius:8px;">';
+            labels.forEach((l, i) => {
+                statsHtml += `
+                    <div style="margin-bottom:5px; font-size:0.85rem;">
+                        <strong>Opção ${l}:</strong> ${percents[i]}%
+                        <div style="background:#374151; height:8px; border-radius:4px; overflow:hidden; margin-top:2px;">
+                            <div style="background:#d4af37; width:${percents[i]}%; height:100%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            statsHtml += '</div>';
+            showModal("👥 Votação da Plateia (20 Entidades)", gridHtml + statsHtml);
+        }
+        function useSkip() {
+            if(skipsLeft <= 0) return;
+            skipsLeft--;
+            document.getElementById('skipCount').textContent = skipsLeft;
+            if(skipsLeft === 0) document.getElementById('btnSkip').disabled = true;
+            currentIdx++;
+            loadQuestion();
+            showModal("⏭️ Pergunta Pulada", "<p>Você pulou esta pergunta com sucesso sem perder seu prêmio!</p>");
+        }
+        function stopGame() {
+            const currentPrize = currentIdx > 0 ? prizes[currentIdx - 1] : "R$ 0";
+            showEndModal("🛑 Você Parou!", `${playerName}, você decidiu parar e levou para casa o prêmio de <strong>${currentPrize}</strong>!<br><br>Parabéns pela jogada!`);
+        }
+        function showModal(title, htmlContent) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = htmlContent;
+            document.getElementById('modalCloseBtn').textContent = "Continuar";
+            document.getElementById('modalCloseBtn').onclick = closeModal;
+            document.getElementById('gameModal').style.display = 'flex';
+        }
+        function showEndModal(title, htmlContent) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = htmlContent;
+            document.getElementById('modalCloseBtn').textContent = "🔄 Jogar Novamente";
+            document.getElementById('modalCloseBtn').onclick = () => {
+                closeModal();
+                resetToStart();
+            };
+            document.getElementById('gameModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('gameModal').style.display = 'none';
+        }
+        function resetToStart() {
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-start').classList.add('active');
+            document.getElementById('playerName').value = '';
+            selectedUnivs = [];
+        }
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+    </script>
+</body>
+</html>
