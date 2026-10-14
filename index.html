@@ -149,6 +149,15 @@
             margin-bottom: 15px;
             border-left: 4px solid #d4af37;
         }
+        .timer-box {
+            background: #dc2626;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            border: 1px solid #fef08a;
+        }
         .question-box {
             font-size: 1.05rem;
             font-weight: bold;
@@ -174,6 +183,7 @@
             transition: all 0.2s;
         }
         .option-btn:hover { border-color: #d4af37; background: #374151; }
+        .option-btn.selected { background: #fbbf24; color: #000; border-color: #f59e0b; }
         /* Ajudas */
         .help-panel {
             display: grid;
@@ -211,6 +221,13 @@
             width: 90%;
             text-align: center;
         }
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-confirm { background: #10b981; color: #fff; flex: 1; padding: 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #ef4444; color: #fff; flex: 1; padding: 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -240,6 +257,7 @@
         <div id="screen-game" class="screen">
             <div class="game-status">
                 <div><strong>Jogador:</strong> <span id="dispPlayer" style="color:#d4af37;"></span></div>
+                <div class="timer-box">⏱️ <span id="timer">30</span>s</div>
                 <div><strong>Prêmio:</strong> <span id="dispPrize" style="color:#10b981; font-weight:bold;">R$ 1.000</span></div>
             </div>
             <div class="question-box" id="questionText">Carregando pergunta...</div>
@@ -258,6 +276,17 @@
             <h3 id="modalTitle" style="color: #d4af37; margin-top: 0;"></h3>
             <div id="modalBody"></div>
             <button class="btn" style="margin-top: 15px;" onclick="closeModal()" id="modalCloseBtn">Continuar</button>
+        </div>
+    </div>
+    <!-- MODAL DE CONFIRMAÇÃO DA RESPOSTA -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3 style="color: #d4af37; margin-top: 0;">Confirmação</h3>
+            <p style="font-size: 1.1rem; color: #fff; margin: 15px 0;">Você está certo(a) disso?</p>
+            <div class="modal-btns">
+                <button class="btn-confirm" onclick="confirmAnswer()">Sim</button>
+                <button class="btn-cancel" onclick="cancelAnswer()">Não</button>
+            </div>
         </div>
     </div>
     <script>
